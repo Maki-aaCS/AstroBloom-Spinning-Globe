@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bloom Globe — multiple locations + slider (preferred rings)</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; color: white; font-family: "Syne", sans-serif; }
+    #globeViz { width: 100vw; height: 100vh; }
+    #sliderContainer {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.05em;
+    }
+    input[type="range"] { width: 60%; }
+    #playBtn { margin-top: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: none; }
+  </style>
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+</head>
+<body>
+  <div id="globeViz"></div>
+
+  <div id="sliderContainer">
+    <span id="monthLabel">January</span><br>
+    <input id="monthSlider" type="range" min="0" max="11" step="1" value="0"><br>
+    <button id="playBtn">▶ Play</button>
+  </div>
+
+  <script>
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+    // --- Your original bloom color palettes (12 per country) ---
+    const bloomColors = {
+      Japan:      ["#e8eb49","#f5a2ac","#f484d4","#e647b9","#ab8aec","#d56de3","#e898ec","#f399f0","#de4242","#c27d37","#e16473","#f1ebb2"],
+      Alaska:     ["#83b1dd","#649ac8","#a2d7ec","#6a5acd","#8f2da0","#d25db9","#cad239","#d9eaa5","#94dee1","#5cabcaff","#34879e","#4b6cb1"],
+      Madagascar: ["#2e7d32","#4b9d4f","#6bc56f","#e1a2d6","#8be0dd","#98d6e7","#8ae5e5","#9adbed","#c71585","#edb232","#e2b330","#b288d1"],
+      NewZealand: ["#ff1493","#ff1493","#ff8c00","#b22222","#b22222","#778899","#87ceeb","#ffb6c1","#ffff00","#e3e54e","#cb84c9","#b52212"],
+      Fiji:       ["#ebe41f","#efa3ee","#e28ee8","#ef6cae","#ea9cd4","#da48c2","#ffffff","#ff4500","#ea8ecb","#edaa92","#eea58b","#e69a87"]
+    };
+
+    // --- MULTIPLE explicit locations per country (several coordinates) ---
+    // These are representative city/region coordinates — you can change any.
+    const locations = {
+      Japan: [
+        { lat: 35.6895, lng: 139.6917, label: "Tokyo" },
+        { lat: 34.6937, lng: 135.5023, label: "Osaka" },
+        { lat: 35.0116, lng: 135.7681, label: "Kyoto" },
+        { lat: 43.06417, lng: 141.34694, label: "Sapporo" },
+        { lat: 33.5902, lng: 130.4017, label: "Fukuoka" }
+      ],
+      Alaska: [
+        { lat: 61.2181, lng: -149.9003, label: "Anchorage" },
+        { lat: 64.8378, lng: -147.7164, label: "Fairbanks" },
+        { lat: 58.3019, lng: -134.4197, label: "Juneau" },
+        { lat: 64.5011, lng: -165.4064, label: "Nome" },
+        { lat: 60.1042, lng: -149.4422, label: "Seward" }
+      ],
+      Madagascar: [
+        { lat: -18.8792, lng: 47.5079, label: "Antananarivo" },
+        { lat: -18.1494, lng: 49.4021, label: "Toamasina" },
+        { lat: -15.7167, lng: 46.3167, label: "Mahajanga" },
+        { lat: -23.3510, lng: 43.6667, label: "Toliara" },
+        { lat: -12.2760, lng: 49.3110, label: "Antsiranana" }
+      ],
+      NewZealand: [
+        { lat: -36.8485, lng: 174.7633, label: "Auckland" },
+        { lat: -41.2865, lng: 174.7762, label: "Wellington" },
+        { lat: -43.5321, lng: 172.6362, label: "Christchurch" },
+        { lat: -45.8788, lng: 170.5028, label: "Dunedin" },
+        { lat: -37.7832, lng: 175.2793, label: "Hamilton" }
+      ],
+      Fiji: [
+        { lat: -18.1248, lng: 178.4501, label: "Suva" },
+        { lat: -17.7768, lng: 177.4358, label: "Nadi" },
+        { lat: -17.6160, lng: 177.4445, label: "Lautoka" },
+        { lat: -18.8139, lng: 178.8458, label: "Levuka" },
+        { lat: -16.4167, lng: 179.3833, label: "Labasa" }
+      ]
+    };
+
+    // --- Ring animation parameters (left exactly as in your preferred code) ---
+    const numRipples = 12;
+    const basePeriod = 12000;
+
+    // Helper: convert hex to RGB array
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.slice(1), 16);
+      return [ (bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255 ];
+    }
+
+    // Initialize Globe with the same ring animation hooks you had
+    const GlobeObj = Globe()
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+
+      // show small dots marking each source (optional but useful)
+      .pointsData([])                // we'll set points each month
+      .pointAltitude(0)
+      .pointLabel(d => d.label)
+      .pointColor(d => d.color)
+      .pointRadius(0.18)
+
+      // rings use the per-ring properties created below (maxR, speed, period, colorRGB)
+      .ringsData([])                 // set per-month
+      .ringMaxRadius(d => d.maxR)
+      .ringPropagationSpeed(d => d.speed)
+      .ringRepeatPeriod(d => d.period)
+      .ringColor(d => t => `rgba(${d.colorRGB[0]},${d.colorRGB[1]},${d.colorRGB[2]},${1 - t})`);
+
+    GlobeObj(document.getElementById('globeViz'));
+
+    GlobeObj.controls().autoRotate = true;
+    GlobeObj.controls().autoRotateSpeed = 0.3;
+
+    // Build rings & points for a given month index WITHOUT changing ring animation logic
+    function updateForMonth(monthIndex) {
+      document.getElementById('monthLabel').textContent = monthNames[monthIndex];
+
+      const rings = [];
+      const points = [];
+
+      // for each country, for each explicit location, generate:
+      //  - a visible small point (source)
+      //  - multiple overlapping ripples (numRipples) with varying period
+      for (const country of Object.keys(locations)) {
+        const colorHex = bloomColors[country] ? bloomColors[country][monthIndex] : "#ffffff";
+        const colorRGB = hexToRgb(colorHex);
+
+        for (const loc of locations[country]) {
+          // point to show the source
+          points.push({
+            lat: loc.lat,
+            lng: loc.lng,
+            label: `${country} — ${loc.label}`,
+            color: colorHex
+          });
+
+          // multiple overlapping ripples per location (keeps your animation style)
+          for (let i = 0; i < numRipples; i++) {
+            rings.push({
+              lat: loc.lat,
+              lng: loc.lng,
+              maxR: 3.5,
+              speed: 2,
+              // the different periods create overlapping ripples (same approach you used)
+              period: basePeriod / (i + 1),
+              colorRGB: colorRGB
+            });
+          }
+        }
+      }
+
+      // push to globe (keeps your ring animation exactly)
+      GlobeObj.pointsData(points);
+      GlobeObj.ringsData(rings);
+    }
+
+    // init month 0
+    updateForMonth(0);
+
+    // slider + play button behaviour (kept similar to your second reference)
+    const slider = document.getElementById('monthSlider');
+    slider.addEventListener('input', e => updateForMonth(parseInt(e.target.value), 10));
+
+    const playBtn = document.getElementById('playBtn');
+    let isPlaying = false, playInterval = null;
+    playBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        isPlaying = true;
+        playBtn.textContent = '⏸ Pause';
+        playInterval = setInterval(() => {
+          let next = (parseInt(slider.value) + 1) % 12;
+          slider.value = next;
+          updateForMonth(next);
+        }, 1000);
+      } else {
+        isPlaying = false;
+        playBtn.textContent = '▶ Play';
+        clearInterval(playInterval);
+      }
+    });
+
+    // small breathing for points so they're a little alive (doesn't touch rings)
+    (function pulsePoints() {
+      const t = Date.now() * 0.002;
+      GlobeObj.pointRadius(0.15 + Math.abs(Math.sin(t)) * 0.06);
+      requestAnimationFrame(pulsePoints);
+    })();
+  </script>
+</body>
+</html>
