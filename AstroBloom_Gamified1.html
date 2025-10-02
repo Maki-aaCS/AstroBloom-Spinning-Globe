@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Bloom Globe Game</title>
+  <title>Bloom Globe — gamified</title>
   <style>
     body { margin: 0; overflow: hidden; background: black; color: white; font-family: "Syne", sans-serif; }
     #globeViz { width: 100vw; height: 100vh; }
@@ -15,36 +15,47 @@
     }
     input[type="range"] { width: 60%; }
     #playBtn { margin-top: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: none; }
-    /* HUD for game */
-    #hud {
+    #scoreboard {
       position: absolute;
-      top: 10px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.6);
-      padding: 10px 16px;
-      border-radius: 10px;
-      text-align: center;
-    }
-    #hud button {
-      margin-top: 6px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      background: #ffb6c1;
+      top: 15px;
+      left: 15px;
+      background: rgba(255,255,255,0.9);
+      color: black;
+      padding: 8px 12px;
+      border-radius: 8px;
       font-weight: bold;
     }
-    /* Popup card for clicked location */
+    #timer {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      color: black;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
     #popup {
       position: absolute;
-      top: 80px; left: 20px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: white;
       color: black;
-      padding: 10px 14px;
-      border-radius: 8px;
+      padding: 20px;
+      border-radius: 12px;
       display: none;
-      max-width: 200px;
-      font-size: 0.9em;
+      z-index: 1000;
+      max-width: 250px;
+      text-align: center;
+    }
+    #popup button {
+      margin-top: 10px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
   </style>
   <script src="https://unpkg.com/three"></script>
@@ -52,27 +63,21 @@
 </head>
 <body>
   <div id="globeViz"></div>
-
-  <div id="hud">
-    <div id="mission">Mission:</div>
-    <div>Score: <span id="score">0</span></div>
-    <div>Time Left: <span id="timer">60</span>s</div>
-    <div>Progress: <span id="progress">0</span></div>
-    <button id="pauseBtn">Pause</button>
-  </div>
-
+  <div id="scoreboard">Score: <span id="score">0</span></div>
+  <div id="timer">Time: 0s</div>
   <div id="sliderContainer">
     <span id="monthLabel">January</span><br>
     <input id="monthSlider" type="range" min="0" max="11" step="1" value="0"><br>
     <button id="playBtn">▶ Play</button>
   </div>
-
-  <div id="popup"></div>
+  <div id="popup">
+    <div id="popupContent"></div>
+    <button onclick="closePopup()">Close</button>
+  </div>
 
   <script>
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-    // Bloom colors (unchanged)
     const bloomColors = {
       Japan:      ["#e8eb49","#f5a2ac","#f484d4","#e647b9","#ab8aec","#d56de3","#e898ec","#f399f0","#de4242","#c27d37","#e16473","#f1ebb2"],
       Alaska:     ["#83b1dd","#649ac8","#a2d7ec","#6a5acd","#8f2da0","#d25db9","#cad239","#d9eaa5","#94dee1","#5cabcaff","#34879e","#4b6cb1"],
@@ -81,7 +86,6 @@
       Fiji:       ["#ebe41f","#efa3ee","#e28ee8","#ef6cae","#ea9cd4","#da48c2","#ffffff","#ff4500","#ea8ecb","#edaa92","#eea58b","#e69a87"]
     };
 
-    // Locations (unchanged)
     const locations = {
       Japan: [
         { lat: 35.6895, lng: 139.6917, label: "Tokyo" },
@@ -120,7 +124,6 @@
       ]
     };
 
-    // Ring animation params (unchanged)
     const numRipples = 12;
     const basePeriod = 12000;
 
@@ -140,8 +143,7 @@
       .ringMaxRadius(d => d.maxR)
       .ringPropagationSpeed(d => d.speed)
       .ringRepeatPeriod(d => d.period)
-      .ringColor(d => t => `rgba(${d.colorRGB[0]},${d.colorRGB[1]},${d.colorRGB[2]},${1 - t})`)
-      .onPointClick(handleClick);
+      .ringColor(d => t => `rgba(${d.colorRGB[0]},${d.colorRGB[1]},${d.colorRGB[2]},${1 - t})`);
 
     GlobeObj(document.getElementById('globeViz'));
     GlobeObj.controls().autoRotate = true;
@@ -165,13 +167,16 @@
       GlobeObj.pointsData(points);
       GlobeObj.ringsData(rings);
     }
+
     updateForMonth(0);
 
     const slider = document.getElementById('monthSlider');
     slider.addEventListener('input', e => updateForMonth(parseInt(e.target.value), 10));
 
+    // --- Play / Pause ---
     const playBtn = document.getElementById('playBtn');
     let isPlaying = false, playInterval = null;
+
     playBtn.addEventListener('click', () => {
       if (!isPlaying) {
         isPlaying = true;
@@ -181,86 +186,64 @@
           slider.value = next;
           updateForMonth(next);
         }, 1000);
+        GlobeObj.controls().autoRotate = true;
+        timerRunning = true; // resume timer
       } else {
         isPlaying = false;
         playBtn.textContent = '▶ Play';
         clearInterval(playInterval);
+        GlobeObj.controls().autoRotate = false;
+        timerRunning = false; // pause timer
       }
     });
 
-    // Game state
-    const missions = [
-      { key: "Japan", target: 5 },
-      { key: "Alaska", target: 5 },
-      { key: "Madagascar", target: 5 },
-      { key: "NewZealand", target: 5 },
-      { key: "Fiji", target: 5 }
-    ];
-    let currentMission = 0, collected = 0, score = 0, timeLeft = 60;
-    let timer = null, paused = false;
+    // SCORE SYSTEM
+    let score = 0;
+    const scoreDisplay = document.getElementById("score");
 
-    const missionEl = document.getElementById("mission");
-    const scoreEl = document.getElementById("score");
-    const timerEl = document.getElementById("timer");
-    const progressEl = document.getElementById("progress");
-    const pauseBtn = document.getElementById("pauseBtn");
-    const popup = document.getElementById("popup");
+    // Track which places have already been clicked
+    const clickedLocations = new Set();
 
-    function startMission() {
-      collected = 0;
-      timeLeft = 60;
-      missionEl.textContent = `Mission: Pollinate ${missions[currentMission].target} blooms in ${missions[currentMission].key}`;
-      updateHUD();
-      if (timer) clearInterval(timer);
-      timer = setInterval(() => {
-        if (!paused) {
-          timeLeft--;
-          updateHUD();
-          if (timeLeft <= 0) endMission();
-        }
-      }, 1000);
-    }
-
-    function handleClick(bloom) {
-      const mission = missions[currentMission];
-      // Show popup card
-      popup.style.display = "block";
-      popup.textContent = `🌸 ${bloom.label}`;
-      if (bloom.label.includes(mission.key)) {
-        collected++;
+    GlobeObj.onPointClick(point => {
+      if (!clickedLocations.has(point.label)) {
+        clickedLocations.add(point.label);   // Mark as visited
         score += 100;
-        updateHUD();
-        if (collected >= mission.target) {
-          score += 250;
-          updateHUD();
-          endMission();
-        }
-      }
-    }
-
-    function endMission() {
-      clearInterval(timer);
-      currentMission++;
-      if (currentMission < missions.length) {
-        setTimeout(startMission, 2000);
+        scoreDisplay.textContent = score;
+        showPopup("Yay, you've pollinated " + point.label + " ! 🌱");
       } else {
-        missionEl.textContent = "🎉 All missions complete!";
+        // Show popup: Already pollinated, No points
+        showPopup(point.label + " already pollinated! No points this time ❌");
       }
-    }
-
-    function updateHUD() {
-      scoreEl.textContent = score;
-      timerEl.textContent = timeLeft;
-      progressEl.textContent = `${collected}/${missions[currentMission].target}`;
-    }
-
-    pauseBtn.addEventListener("click", () => {
-      paused = !paused;
-      pauseBtn.textContent = paused ? "Resume" : "Pause";
-      GlobeObj.controls().autoRotate = !paused;
     });
 
-    startMission();
+    function showPopup(text) {
+      const popup = document.getElementById("popup");
+      document.getElementById("popupContent").textContent = text;
+      popup.style.display = "block";
+    }
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+
+    // Timer
+    let seconds = 0;
+    let timerRunning = true;
+    const timerEl = document.getElementById("timer");
+
+    setInterval(() => {
+      if (timerRunning) {
+        seconds++;
+        timerEl.textContent = "Time: " + seconds + "s";
+      }
+    }, 1000);
+
+    // Point pulsing animation 
+    (function pulsePoints() {
+      const t = Date.now() * 0.002;
+      GlobeObj.pointRadius(0.15 + Math.abs(Math.sin(t)) * 0.06);
+      requestAnimationFrame(pulsePoints);
+    })();
   </script>
 </body>
 </html>
+
