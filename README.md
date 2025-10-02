@@ -9,8 +9,12 @@ How do I access this on my web browser if it doesn't open when I click it throug
 - Now you should see your Globe :)
 
 What does each file do?
+
 - globeCcolorsVisualization: Vika's globe code. The 'raw' code where the below files contain the modified versions of.
 - AstroBloom_Pulse: An update to Vika's spinning globe code (see file 'globeCcolorsVisualization.html' where you can see the pulsating circles of the blooming phenamenon(?) for the spinning globe. Note: AstroBloom_Pulse_Final is the final version with a functioning month slider and pulses showing for several locations in each country.
 - AstroBloom_Gamified_Raw: A first trial sample as to how the gamified version of the spinning globe will look.
 - AstroBloom_Gamified1: Working functions including timer, points system and popups.
-  
+
+MAIN FILES TO FOCUS ON:
+- AstroBloom_Pulse_Final
+- AstroBloom_Gamified1
