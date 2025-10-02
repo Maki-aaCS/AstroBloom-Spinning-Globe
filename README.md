@@ -10,6 +10,6 @@ How do I access this on my web browser?
 
 What does each file do?
 - globeCcolorsVisualization: Vika's globe code. The 'raw' code where the below files contain the modified versions of.
-- AstroBloom_Pulse: An update to Vika's spinning globe code (see file 'globeCcolorsVisualization.html' where you can see the pulsating circles of the blooming phenamenon(?) for the spinning globe. Note: AstroBloom_Pulse_Final is the best version of the pulses imo.
+- AstroBloom_Pulse: An update to Vika's spinning globe code (see file 'globeCcolorsVisualization.html' where you can see the pulsating circles of the blooming phenamenon(?) for the spinning globe. Note: AstroBloom_Pulse_Final is the final version with a functioning month slider and pulses showing for several locations in each country.
 - AstroBloom_Gamified: A first trial sample as to the functions of the gamified version of the spinning globe.
   
