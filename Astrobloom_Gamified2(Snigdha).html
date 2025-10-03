@@ -118,7 +118,8 @@
     const basePeriod = 12000;
     function hexToRgb(hex) {
       const bigint = parseInt(hex.slice(1), 16);
-      return [ (bigint >> 16) & 255, (bigint >> 😎 & 255, bigint & 255 ];
+//Showing error so next line is the modified version      return [ (bigint >> 16) & 255, (bigint >> 😎 & 255, bigint & 255 ];
+      return [ (bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255 ];
     }
 
     const GlobeObj = Globe()
