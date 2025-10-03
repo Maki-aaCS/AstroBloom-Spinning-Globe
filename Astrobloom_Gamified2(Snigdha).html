@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bloom Globe — All Video Embed</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; color: white; font-family: "Syne", sans-serif; }
+    #globeViz { width: 100vw; height: 100vh; }
+    #sliderContainer {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.05em;
+    }
+    input[type="range"] { width: 60%; }
+    #playBtn { margin-top: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: none; }
+
+    /* Video modal */
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.75);
+      z-index: 9999;
+    }
+    .video-modal.active { display:flex; }
+    .video-box {
+      width: min(900px, 95%);
+      height: min(560px, 85%);
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .video-box iframe { width:100%; height:100%; border:0; }
+    .video-close {
+      position: absolute;
+      top:8px; right:8px;
+      background:rgba(255,255,255,0.12);
+      color:#fff; border:0; padding:6px 10px; cursor:pointer;
+      border-radius:6px; font-weight:600;
+    }
+  </style>
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+</head>
+<body>
+  <div id="globeViz"></div>
+
+  <div id="sliderContainer">
+    <span id="monthLabel">January</span><br>
+    <input id="monthSlider" type="range" min="0" max="11" step="1" value="0"><br>
+    <button id="playBtn">▶ Play</button>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="video-box">
+      <button id="closeBtn" class="video-close">✕ Close</button>
+      <iframe id="ytFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script>
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+    const bloomColors = {
+      Japan:      ["#e8eb49","#f5a2ac","#f484d4","#e647b9","#ab8aec","#d56de3","#e898ec","#f399f0","#de4242","#c27d37","#e16473","#f1ebb2"],
+      Alaska:     ["#83b1dd","#649ac8","#a2d7ec","#6a5acd","#8f2da0","#d25db9","#cad239","#d9eaa5","#94dee1","#34879e","#4b6cb1"],
+      Madagascar: ["#2e7d32","#4b9d4f","#6bc56f","#e1a2d6","#8be0dd","#98d6e7","#8ae5e5","#9adbed","#c71585","#edb232","#e2b330","#b288d1"],
+      NewZealand: ["#ff1493","#ff1493","#ff8c00","#b22222","#b22222","#778899","#87ceeb","#ffb6c1","#ffff00","#e3e54e","#cb84c9","#b52212"],
+      Fiji:       ["#ebe41f","#efa3ee","#e28ee8","#ef6cae","#ea9cd4","#da48c2","#ffffff","#ff4500","#ea8ecb","#edaa92","#eea58b","#e69a87"]
+    };
+
+    // --- Locations with video URLs ---
+    const locations = {
+      Japan: [
+        { lat: 35.6895, lng: 139.6917, label: "Tokyo", videoUrl:"https://youtu.be/ZrcbDVhqvZg" },
+        { lat: 34.6937, lng: 135.5023, label: "Osaka", videoUrl:"https://share.google/7t4DK6Uh9pWWY25NG" },
+        { lat: 35.0116, lng: 135.7681, label: "Kyoto", videoUrl:"https://share.google/uRtB6ue1iSblk35Cl" },
+        { lat: 43.06417, lng: 141.34694, label: "Sapporo", videoUrl:"https://share.google/hVnwdnn6rpYgNIY1m" },
+        { lat: 33.5902, lng: 130.4017, label: "Fukuoka", videoUrl:"https://share.google/urc3d5XBGHYNDdqsm" }
+      ],
+      Alaska: [
+        { lat: 61.2181, lng: -149.9003, label: "Anchorage", videoUrl:"https://youtube.com/shorts/Hrrr12QfUt8" },
+        { lat: 64.8378, lng: -147.7164, label: "Fairbanks", videoUrl:"https://youtube.com/shorts/LtT454zVegE" },
+        { lat: 58.3019, lng: -134.4197, label: "Juneau", videoUrl:"https://share.google/FqKsPxgXLuhh3DI77" },
+        { lat: 64.5011, lng: -165.4064, label: "Nome", videoUrl:"https://share.google/bySMAQT8iL3BXnd3Q" },
+        { lat: 60.1042, lng: -149.4422, label: "Seward", videoUrl:"https://share.google/QXkXPJZIcZfh0pTyW" }
+      ],
+      Madagascar: [
+        { lat: -18.8792, lng: 47.5079, label: "Antananarivo", videoUrl:"https://www.instagram.com/reel/DBboGIUMrM7" },
+        { lat: -18.1494, lng: 49.4021, label: "Toamasina", videoUrl:"https://share.google/vfQQ3vXgFbS0CLmvA" },
+        { lat: -15.7167, lng: 46.3167, label: "Mahajanga", videoUrl:"https://share.google/FelErEpOoCiE8ktYi" },
+        { lat: -23.3510, lng: 43.6667, label: "Toliara", videoUrl:"https://share.google/OA2g8G1Ee0XRltYPz" },
+        { lat: -12.2760, lng: 49.3110, label: "Antsiranana", videoUrl:"https://pin.it/2rdnJrcWI" }
+      ],
+      NewZealand: [
+        { lat: -36.8485, lng: 174.7633, label: "Auckland", videoUrl:"https://youtu.be/axitaaKf_BE" },
+        { lat: -41.2865, lng: 174.7762, label: "Wellington", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" },
+        { lat: -43.5321, lng: 172.6362, label: "Christchurch", videoUrl:"https://youtu.be/lSEU1DI7VYE" },
+        { lat: -45.8788, lng: 170.5028, label: "Dunedin", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" },
+        { lat: -37.7832, lng: 175.2793, label: "Hamilton", videoUrl:"https://share.google/X0hc3CFpe5v5sU2Zx" }
+      ],
+      Fiji: [
+        { lat: -18.1248, lng: 178.4501, label: "Suva", videoUrl:"https://share.google/mH2OMFtfCefwpoKJw" },
+        { lat: -17.7768, lng: 177.4358, label: "Nadi", videoUrl:"https://youtu.be/si5tPjg92v4" },
+        { lat: -17.6160, lng: 177.4445, label: "Lautoka", videoUrl:"https://share.google/LFarCgDZJqoe6RWe7" },
+        { lat: -18.8139, lng: 178.8458, label: "Levuka", videoUrl:"https://share.google/pddfALrcGszGtG6dC" },
+        { lat: -16.4167, lng: 179.3833, label: "Labasa", videoUrl:"https://share.google/bxHZYPzr6eLtX6Vp9" }
+      ]
+    };
+
+    const numRipples = 12;
+    const basePeriod = 12000;
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.slice(1), 16);
+      return [ (bigint >> 16) & 255, (bigint >> 😎 & 255, bigint & 255 ];
+    }
+
+    const GlobeObj = Globe()
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .pointsData([])
+      .pointAltitude(0)
+      .pointLabel(d => d.label)
+      .pointColor(d => d.color)
+      .pointRadius(0.25)
+      .ringsData([])
+      .ringMaxRadius(d => d.maxR)
+      .ringPropagationSpeed(d => d.speed)
+      .ringRepeatPeriod(d => d.period)
+      .ringColor(d => t => `rgba(${d.colorRGB[0]},${d.colorRGB[1]},${d.colorRGB[2]},${1 - t})`);
+
+    GlobeObj(document.getElementById('globeViz'));
+    GlobeObj.controls().autoRotate = true;
+    GlobeObj.controls().autoRotateSpeed = 0.3;
+
+    function updateForMonth(monthIndex) {
+      document.getElementById('monthLabel').textContent = monthNames[monthIndex];
+      const rings = [];
+      const points = [];
+
+      for (const country of Object.keys(locations)) {
+        const colorHex = bloomColors[country] ? bloomColors[country][monthIndex] : "#ffffff";
+        const colorRGB = hexToRgb(colorHex);
+
+        for (const loc of locations[country]) {
+          points.push({
+            lat: loc.lat,
+            lng: loc.lng,
+            label: `${country} — ${loc.label}`,
+            color: colorHex,
+            videoUrl: loc.videoUrl
+          });
+
+          for (let i = 0; i < numRipples; i++) {
+            rings.push({
+              lat: loc.lat,
+              lng: loc.lng,
+              maxR: 3.5,
+              speed: 2,
+              period: basePeriod / (i + 1),
+              colorRGB: colorRGB
+            });
+          }
+        }
+      }
+
+      GlobeObj.pointsData(points);
+      GlobeObj.ringsData(rings);
+    }
+
+    updateForMonth(0);
+
+    const slider = document.getElementById('monthSlider');
+    slider.addEventListener('input', e => updateForMonth(parseInt(e.target.value, 10)));
+
+    const playBtn = document.getElementById('playBtn');
+    let isPlaying = false, playInterval = null;
+    playBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        isPlaying = true;
+        playBtn.textContent = '⏸ Pause';
+        playInterval = setInterval(() => {
+          let next = (parseInt(slider.value) + 1) % 12;
+          slider.value = next;
+          updateForMonth(next);
+        }, 1000);
+      } else {
+        isPlaying = false;
+        playBtn.textContent = '▶ Play';
+        clearInterval(playInterval);
+      }
+    });
+
+    (function pulsePoints() {
+      const t = Date.now() * 0.002;
+      GlobeObj.pointRadius(0.15 + Math.abs(Math.sin(t)) * 0.08);
+      requestAnimationFrame(pulsePoints);
+    })();
+
+    // --- Video Modal Handling (all URLs iframe) ---
+    const modal = document.getElementById('videoModal');
+    const ytFrame = document.getElementById('ytFrame');
+    const closeBtn = document.getElementById('closeBtn');
+    closeBtn.addEventListener('click', () => { modal.classList.remove('active'); ytFrame.src=""; });
+    modal.addEventListener('click', e => { if (e.target===modal) { modal.classList.remove('active'); ytFrame.src=""; } });
+
+    GlobeObj.onPointClick(point => {
+      if (point.videoUrl) {
+        ytFrame.src = point.videoUrl.includes("youtu") 
+          ? toEmbedUrl(point.videoUrl) + "?autoplay=1&rel=0" 
+          : point.videoUrl;
+        modal.classList.add('active');
+      }
+    });
+function toEmbedUrl(url) {
+      // YouTube / YouTube Shorts → embed format
+      if(url.includes("youtu")) {
+        let videoId = "";
+        if(url.includes("shorts/")) {
+          videoId = url.split("shorts/")[1].split("?")[0];
+        } else if(url.includes("watch?v=")) {
+          videoId = url.split("watch?v=")[1].split("&")[0];
+        } else if(url.includes("youtu.be/")) {
+          videoId = url.split("youtu.be/")[1].split("?")[0];
+        }
+        return "https://www.youtube.com/embed/" + videoId;
+      }
+      // অন্যান্য URLs 그대로 রাখবে (Instagram, Google Drive, Pinterest)
+      return url;
+    }
+  </script>
+</body>
+</html>
