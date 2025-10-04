@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bloom Globe — Blooming + Agriculture</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; color: white; font-family: "Syne", sans-serif; }
+    #globeViz { width: 100vw; height: 100vh; }
+
+    #sliderContainer {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.05em;
+    }
+    input[type="range"] { width: 60%; }
+    #playBtn { margin-top: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: none; }
+
+    /* Scoreboard */
+    #scoreboard {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(255,255,255,0.9);
+      color: black;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    .tick { color: green; margin-left: 6px; }
+
+    /* Dropdown menu */
+    .menu-container {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+    }
+    .more-btn {
+      background: rgba(255,255,255,0.9);
+      border: none;
+      font-size: 20px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .menu {
+      position: absolute;
+      right: 0;
+      margin-top: 6px;
+      min-width: 150px;
+      background: white;
+      color: black;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 100;
+    }
+    .menu.show { display: block; }
+    .menu button {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 8px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .menu button:hover { background: rgba(0,0,0,0.08); }
+
+    /* Video modal */
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.75);
+      z-index: 9999;
+    }
+    .video-modal.active { display:flex; }
+    .video-box {
+      width: min(900px, 95%);
+      height: min(560px, 85%);
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .video-box iframe { width:100%; height:100%; border:0; }
+    .video-close {
+      position: absolute;
+      top:8px; right:8px;
+      background:rgba(255,255,255,0.12);
+      color:#fff; border:0; padding:6px 10px; cursor:pointer;
+      border-radius:6px; font-weight:600;
+    }
+  </style>
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+</head>
+<body>
+  <div id="globeViz"></div>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard">
+    🌸 Blooming: <span id="scoreBloom">0</span><span id="tickBloom"></span><br>
+    🌾 Agriculture: <span id="scoreAgri">0</span><span id="tickAgri"></span>
+  </div>
+
+  <!-- Mode switch dropdown -->
+  <div class="menu-container">
+    <button id="dotsBtn" class="more-btn">&#8942;</button>
+    <div id="dotsMenu" class="menu">
+      <button id="optBlooming">Blooming</button>
+      <button id="optAgriculture">Agriculture</button>
+    </div>
+  </div>
+
+  <!-- Month slider -->
+  <div id="sliderContainer">
+    <span id="monthLabel">January</span><br>
+    <input id="monthSlider" type="range" min="0" max="11" step="1" value="0"><br>
+    <button id="playBtn">▶ Play</button>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="video-box">
+      <button id="closeBtn" class="video-close">✕ Close</button>
+      <iframe id="ytFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+  </div>
+
+<script>
+/* ------------ DATA ------------ */
+const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/* Blooming color palettes (12 colors per country) */
+const bloomColors = {
+  Japan:["#f5a2ac","#f484d4","#e647b9","#ab8aec","#d56de3","#e898ec","#f399f0","#de4242","#c27d37","#e16473","#f1ebb2","#e8eb49"],
+  Alaska:["#83b1dd","#649ac8","#a2d7ec","#6a5acd","#8f2da0","#d25db9","#cad239","#d9eaa5","#94dee1","#34879e","#4b6cb1","#5a9bd5"],
+  Madagascar:["#2e7d32","#4b9d4f","#6bc56f","#8be0dd","#98d6e7","#8ae5e5","#9adbed","#c71585","#edb232","#e2b330","#b288d1","#d56de3"],
+  NewZealand:["#ff1493","#ff8c00","#b22222","#778899","#87ceeb","#ffb6c1","#ffff00","#e3e54e","#cb84c9","#b52212","#6bc56f","#9adbed"],
+  Fiji:["#ebe41f","#efa3ee","#e28ee8","#ef6cae","#ea9cd4","#da48c2","#ffffff","#ff4500","#ea8ecb","#edaa92","#eea58b","#e69a87"]
+};
+
+/* Agriculture color palettes (12 colors per country) */
+const agriColors = {
+  USA:["#ff9999","#ffcc99","#ffff99","#ccff99","#99ff99","#99ffcc","#99ccff","#9999ff","#cc99ff","#ff99cc","#ffccff","#ff9966"],
+  Brazil:["#4caf50","#81c784","#aed581","#dce775","#fff176","#ffd54f","#ffb74d","#ff8a65","#e57373","#f06292","#ba68c8","#9575cd"],
+  India:["#ffe082","#ffcc80","#ffab91","#f48fb1","#ce93d8","#9fa8da","#90caf9","#80deea","#80cbc4","#a5d6a7","#c5e1a5","#e6ee9c"],
+  China:["#c62828","#ad1457","#6a1b9a","#283593","#1565c0","#0277bd","#00838f","#2e7d32","#558b2f","#9e9d24","#f9a825","#ef6c00"],
+  Ukraine:["#ffeb3b","#fbc02d","#f57f17","#ff9800","#ef6c00","#e65100","#a1887f","#8d6e63","#795548","#6d4c41","#5d4037","#4e342e"],
+  Australia:["#009688","#26a69a","#4db6ac","#80cbc4","#b2dfdb","#c5cae9","#9fa8da","#7986cb","#5c6bc0","#3f51b5","#3949ab","#303f9f"]
+};
+
+/* Blooming Locations */
+const bloomLocations = {
+  Japan: [
+    { lat: 35.6895, lng: 139.6917, label: "Tokyo", videoUrl:"https://youtu.be/yVkI0pwqA1s" },
+    { lat: 34.6937, lng: 135.5023, label: "Osaka", videoUrl:"https://youtu.be/2WK68UCBX2k" },
+    { lat: 35.0116, lng: 135.7681, label: "Kyoto", videoUrl:"https://www.youtube.com/watch?v=rCuCTFjRIJM" },  
+    { lat: 43.06417, lng: 141.34694, label: "Sapporo", videoUrl:"https://www.youtube.com/watch?v=rbxiTQ0izTg" },
+    { lat: 33.5902, lng: 130.4017, label: "Fukuoka", videoUrl:"https://www.youtube.com/watch?v=5JtLTHaPFDM" }
+  ],
+  Alaska: [
+    { lat: 61.2181, lng: -149.9003, label: "Anchorage", videoUrl:"https://youtube.com/shorts/Hrrr12QfUt8" },
+    { lat: 64.8378, lng: -147.7164, label: "Fairbanks", videoUrl:"https://youtube.com/shorts/LtT454zVegE" },
+    { lat: 58.3019, lng: -134.4197, label: "Juneau", videoUrl:"https://youtu.be/ihFRWkqfEsY" },
+    { lat: 64.5011, lng: -165.4064, label: "Nome", videoUrl:"https://www.youtube.com/watch?v=SUcOTyYW5gE" },
+    { lat: 60.1042, lng: -149.4422, label: "Seward", videoUrl:"https://www.youtube.com/watch?v=1gl8yMo5M5Q" }
+  ],
+  Madagascar: [
+    { lat: -18.8792, lng: 47.5079, label: "Antananarivo", videoUrl:"https://youtu.be/VuVZt9INJ2E" },
+    { lat: -18.1494, lng: 49.4021, label: "Toamasina", videoUrl:"https://www.youtube.com/watch?v=soLTJjM0K6E" },
+    { lat: -15.7167, lng: 46.3167, label: "Mahajanga", videoUrl:"https://youtu.be/J8Ekvf6s6b8" },
+    { lat: -23.3510, lng: 43.6667, label: "Toliara", videoUrl:"https://youtu.be/a7lnKhwnZko" },
+    { lat: -12.2760, lng: 49.3110, label: "Antsiranana", videoUrl:"https://youtu.be/sFauF1h3qa8" } 
+  ],
+  NewZealand: [
+    { lat: -36.8485, lng: 174.7633, label: "Auckland", videoUrl:"https://youtu.be/axitaaKf_BE" },
+    { lat: -41.2865, lng: 174.7762, label: "Wellington", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" }, 
+    { lat: -43.5321, lng: 172.6362, label: "Christchurch", videoUrl:"https://youtu.be/lSEU1DI7VYE" },
+    { lat: -45.8788, lng: 170.5028, label: "Dunedin", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" },  
+    { lat: -37.7832, lng: 175.2793, label: "Hamilton", videoUrl:"https://www.youtube.com/watch?v=0hx7FNVRVjg" }
+  ],
+  Fiji: [
+    { lat: -18.1248, lng: 178.4501, label: "Suva", videoUrl:"https://youtu.be/si5tPjg92v4" },
+    { lat: -17.7768, lng: 177.4358, label: "Nadi", videoUrl:"https://youtu.be/si5tPjg92v4" },
+    { lat: -17.6160, lng: 177.4445, label: "Lautoka", videoUrl:"https://youtu.be/ws36V6Kp1II" },
+    { lat: -18.8139, lng: 178.8458, label: "Levuka", videoUrl:"https://www.youtube.com/watch?v=TvWC6wY468c" },
+    { lat: -16.4167, lng: 179.3833, label: "Labasa", videoUrl:"https://youtu.be/Y8DmlSdkZ7M" }
+  ]
+};
+
+/* Agriculture Locations */
+const agriLocations = {
+  USA: [
+    { lat: 40.6331, lng: -89.3985, label: "Illinois (Corn Belt)", videoUrl:"https://youtu.be/-Q1hvGgw-4w" },
+    { lat: 36.7783, lng: -119.4179, label: "California (Fruits & Vegetables)", videoUrl:"https://youtu.be/s5JX6q7IhqY" },
+    { lat: 32.7767, lng: -96.7970, label: "Texas (Cattle & Cotton)", videoUrl:"https://youtu.be/I3AqGjhJ9JQ" }
+  ],
+  Brazil: [
+    { lat: -15.7801, lng: -47.9292, label: "Cerrado (Soybeans)", videoUrl:"https://youtu.be/wErmXq0ItO8" },
+    { lat: -22.9068, lng: -43.1729, label: "São Paulo (Sugarcane & Coffee)", videoUrl:"https://youtu.be/1uYWdzyuyQM" }
+  ],
+  India: [
+    { lat: 26.8467, lng: 80.9462, label: "Uttar Pradesh (Sugarcane & Wheat)", videoUrl:"https://youtu.be/pDp04CMn5UM" },
+    { lat: 22.5726, lng: 88.3639, label: "West Bengal (Rice)", videoUrl:"https://youtu.be/mtgktxG3mHI" },
+    { lat: 17.3850, lng: 78.4867, label: "Telangana (Cotton & Rice)", videoUrl:"https://youtu.be/n3mQGLp4vss" }
+  ],
+  China: [
+    { lat: 32.0603, lng: 118.7969, label: "Jiangsu (Rice & Wheat)", videoUrl:"https://youtu.be/B6K8zSXy3V0" },
+    { lat: 34.3416, lng: 108.9398, label: "Shaanxi (Apple Production)", videoUrl:"https://youtu.be/k_9v2kFQZK4" }
+  ],
+  Ukraine: [
+    { lat: 49.8397, lng: 24.0297, label: "Lviv (Wheat & Barley)", videoUrl:"https://youtu.be/1bwsdVZkFhM" },
+    { lat: 48.3794, lng: 31.1656, label: "Central Ukraine (Sunflowers)", videoUrl:"https://youtu.be/Sp0a6EDuQXo" }
+  ],
+  Australia: [
+    { lat: -34.9285, lng: 138.6007, label: "South Australia (Wheat)", videoUrl:"https://youtu.be/Zg8VQxRk6IM" },
+    { lat: -27.4698, lng: 153.0251, label: "Queensland (Sugarcane)", videoUrl:"https://youtu.be/K3gA5dUDdSI" }
+  ]
+};
+
+const numRipples = 12, basePeriod = 12000;
+function hexToRgb(hex){const bigint=parseInt(hex.slice(1),16);return[(bigint>>16)&255,(bigint>>8)&255,bigint&255];}
+
+/* ------------ Globe ------------ */
+const GlobeObj = Globe()
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .pointsData([])
+  .pointAltitude(0)
+  .pointLabel(d=>d.label)
+  .pointColor(d=>d.color)
+  .pointRadius(0.18)
+  .ringsData([])
+  .ringMaxRadius(d=>d.maxR)
+  .ringPropagationSpeed(d=>d.speed)
+  .ringRepeatPeriod(d=>d.period)
+  .ringColor(d=>t=>`rgba(${d.colorRGB[0]},${d.colorRGB[1]},${d.colorRGB[2]},${1-t})`);
+
+GlobeObj(document.getElementById('globeViz'));
+GlobeObj.controls().autoRotate=true;
+GlobeObj.controls().autoRotateSpeed=0.3;
+
+/* ------------ State ------------ */
+let mode="Blooming";
+let scores={Blooming:0,Agriculture:0};
+let clicked={Blooming:new Set(), Agriculture:new Set()};
+
+/* ------------ Update ------------ */
+function updateForMonth(monthIndex){
+  document.getElementById('monthLabel').textContent=monthNames[monthIndex];
+  const rings=[], points=[];
+  const dataset=(mode==="Blooming"? bloomLocations: agriLocations);
+  const palette=(mode==="Blooming"? bloomColors: agriColors);
+
+  for(const country of Object.keys(dataset)){
+    const colorHex=palette[country]? palette[country][monthIndex]:"#ffffff";
+    const colorRGB=hexToRgb(colorHex);
+    for(const loc of dataset[country]){
+      points.push({...loc,color:colorHex});
+      for(let i=0;i<numRipples;i++){
+        rings.push({lat:loc.lat,lng:loc.lng,maxR:3.5,speed:2,period:basePeriod/(i+1),colorRGB});
+      }
+    }
+  }
+  GlobeObj.pointsData(points);
+  GlobeObj.ringsData(rings);
+}
+updateForMonth(0);
+
+/* ------------ Slider ------------ */
+const slider=document.getElementById('monthSlider');
+slider.addEventListener('input',e=>updateForMonth(parseInt(e.target.value,10)));
+
+/* ------------ Play / Pause ------------ */
+const playBtn=document.getElementById('playBtn');
+let isPlaying=false, playInterval=null;
+playBtn.addEventListener('click',()=>{
+  if(!isPlaying){
+    isPlaying=true; playBtn.textContent='⏸ Pause';
+    playInterval=setInterval(()=>{
+      let next=(parseInt(slider.value)+1)%12;
+      slider.value=next; updateForMonth(next);
+    },1000);
+    GlobeObj.controls().autoRotate=true;
+  } else {
+    isPlaying=false; playBtn.textContent='▶ Play';
+    clearInterval(playInterval); GlobeObj.controls().autoRotate=false;
+  }
+});
+
+/* ------------ Scoring ------------ */
+const scoreBloom=document.getElementById("scoreBloom");
+const scoreAgri=document.getElementById("scoreAgri");
+const tickBloom=document.getElementById("tickBloom");
+const tickAgri=document.getElementById("tickAgri");
+
+GlobeObj.onPointClick(point=>{
+  if(point.videoUrl){
+    ytFrame.src=point.videoUrl.includes("youtu")?toEmbedUrl(point.videoUrl)+"?autoplay=1&rel=0":point.videoUrl;
+    modal.classList.add('active');
+  }
+  if(!clicked[mode].has(point.label)){
+    clicked[mode].add(point.label);
+    scores[mode]+=100;
+    if(mode==="Blooming") scoreBloom.textContent=scores[mode];
+    if(mode==="Agriculture") scoreAgri.textContent=scores[mode];
+
+    const dataset=(mode==="Blooming"? bloomLocations: agriLocations);
+    const total=Object.values(dataset).flat().length;
+    if(clicked[mode].size===total){
+      if(mode==="Blooming") tickBloom.textContent="✅";
+      if(mode==="Agriculture") tickAgri.textContent="✅";
+    }
+  }
+});
+
+/* ------------ Video Modal ------------ */
+const modal=document.getElementById('videoModal');
+const ytFrame=document.getElementById('ytFrame');
+const closeBtn=document.getElementById('closeBtn');
+closeBtn.addEventListener('click',()=>{modal.classList.remove('active');ytFrame.src="";});
+modal.addEventListener('click',e=>{if(e.target===modal){modal.classList.remove('active');ytFrame.src="";}});
+function toEmbedUrl(url){
+  let videoId=""; if(url.includes("shorts/")) videoId=url.split("shorts/")[1].split("?")[0];
+  else if(url.includes("watch?v=")) videoId=url.split("watch?v=")[1].split("&")[0];
+  else if(url.includes("youtu.be/")) videoId=url.split("youtu.be/")[1].split("?")[0];
+  return "https://www.youtube.com/embed/"+videoId;
+}
+
+/* ------------ Dropdown ------------ */
+const btn=document.getElementById('dotsBtn');
+const menu=document.getElementById('dotsMenu');
+btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.toggle('show');});
+document.addEventListener('click',()=>menu.classList.remove('show'));
+document.getElementById('optBlooming').addEventListener('click',()=>{
+  mode="Blooming"; updateForMonth(parseInt(slider.value,10)); menu.classList.remove('show');
+});
+document.getElementById('optAgriculture').addEventListener('click',()=>{
+  mode="Agriculture"; updateForMonth(parseInt(slider.value,10)); menu.classList.remove('show');
+});
+
+/* ------------ Point pulsing ------------ */
+(function pulsePoints(){const t=Date.now()*0.002;GlobeObj.pointRadius(0.15+Math.abs(Math.sin(t))*0.06);requestAnimationFrame(pulsePoints);})();
+</script>
+</body>
+</html>
