@@ -134,10 +134,10 @@
   </div>
 
 <script>
-/* ------------ DATA ------------ */
+//Implication of months for slider to change colors of pulsing circles monthly
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-/* Blooming color palettes (12 colors per country) */
+//Blooming monthly color change
 const bloomColors = {
   Japan:["#f5a2ac","#f484d4","#e647b9","#ab8aec","#d56de3","#e898ec","#f399f0","#de4242","#c27d37","#e16473","#f1ebb2","#e8eb49"],
   Alaska:["#83b1dd","#649ac8","#a2d7ec","#6a5acd","#8f2da0","#d25db9","#cad239","#d9eaa5","#94dee1","#34879e","#4b6cb1","#5a9bd5"],
@@ -146,7 +146,7 @@ const bloomColors = {
   Fiji:["#ebe41f","#efa3ee","#e28ee8","#ef6cae","#ea9cd4","#da48c2","#ffffff","#ff4500","#ea8ecb","#edaa92","#eea58b","#e69a87"]
 };
 
-/* Agriculture color palettes (12 colors per country) */
+//Agriculture monthly color change
 const agriColors = {
   USA:["#ff9999","#ffcc99","#ffff99","#ccff99","#99ff99","#99ffcc","#99ccff","#9999ff","#cc99ff","#ff99cc","#ffccff","#ff9966"],
   Brazil:["#4caf50","#81c784","#aed581","#dce775","#fff176","#ffd54f","#ffb74d","#ff8a65","#e57373","#f06292","#ba68c8","#9575cd"],
@@ -156,7 +156,7 @@ const agriColors = {
   Australia:["#009688","#26a69a","#4db6ac","#80cbc4","#b2dfdb","#c5cae9","#9fa8da","#7986cb","#5c6bc0","#3f51b5","#3949ab","#303f9f"]
 };
 
-/* Blooming Locations */
+//Blooming Locations
 const bloomLocations = {
   Japan: [
     { lat: 35.6895, lng: 139.6917, label: "Tokyo", videoUrl:"https://youtu.be/yVkI0pwqA1s" },
@@ -195,7 +195,7 @@ const bloomLocations = {
   ]
 };
 
-/* Agriculture Locations */
+//Agriculture Locations
 const agriLocations = {
   USA: [
     { lat: 40.6331, lng: -89.3985, label: "Illinois (Corn Belt)", videoUrl:"https://youtu.be/-Q1hvGgw-4w" },
@@ -228,7 +228,7 @@ const agriLocations = {
 const numRipples = 12, basePeriod = 12000;
 function hexToRgb(hex){const bigint=parseInt(hex.slice(1),16);return[(bigint>>16)&255,(bigint>>8)&255,bigint&255];}
 
-/* ------------ Globe ------------ */
+//Spinning Globe
 const GlobeObj = Globe()
   .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
   .pointsData([])
@@ -246,12 +246,12 @@ GlobeObj(document.getElementById('globeViz'));
 GlobeObj.controls().autoRotate=true;
 GlobeObj.controls().autoRotateSpeed=0.3;
 
-/* ------------ State ------------ */
+
 let mode="Blooming";
 let scores={Blooming:0,Agriculture:0};
 let clicked={Blooming:new Set(), Agriculture:new Set()};
 
-/* ------------ Update ------------ */
+
 function updateForMonth(monthIndex){
   document.getElementById('monthLabel').textContent=monthNames[monthIndex];
   const rings=[], points=[];
@@ -273,11 +273,11 @@ function updateForMonth(monthIndex){
 }
 updateForMonth(0);
 
-/* ------------ Slider ------------ */
+//Month Slider
 const slider=document.getElementById('monthSlider');
 slider.addEventListener('input',e=>updateForMonth(parseInt(e.target.value,10)));
 
-/* ------------ Play / Pause ------------ */
+//Play button
 const playBtn=document.getElementById('playBtn');
 let isPlaying=false, playInterval=null;
 playBtn.addEventListener('click',()=>{
@@ -294,7 +294,7 @@ playBtn.addEventListener('click',()=>{
   }
 });
 
-/* ------------ Scoring ------------ */
+//Score System
 const scoreBloom=document.getElementById("scoreBloom");
 const scoreAgri=document.getElementById("scoreAgri");
 const tickBloom=document.getElementById("tickBloom");
@@ -320,7 +320,7 @@ GlobeObj.onPointClick(point=>{
   }
 });
 
-/* ------------ Video Modal ------------ */
+/* ------------ Video Modal ------------ (chat-gpt to embed youtube videos in popups_*/
 const modal=document.getElementById('videoModal');
 const ytFrame=document.getElementById('ytFrame');
 const closeBtn=document.getElementById('closeBtn');
@@ -333,7 +333,7 @@ function toEmbedUrl(url){
   return "https://www.youtube.com/embed/"+videoId;
 }
 
-/* ------------ Dropdown ------------ */
+// Dropdown 
 const btn=document.getElementById('dotsBtn');
 const menu=document.getElementById('dotsMenu');
 btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.toggle('show');});
@@ -345,8 +345,8 @@ document.getElementById('optAgriculture').addEventListener('click',()=>{
   mode="Agriculture"; updateForMonth(parseInt(slider.value,10)); menu.classList.remove('show');
 });
 
-/* ------------ Point pulsing ------------ */
-(function pulsePoints(){const t=Date.now()*0.002;GlobeObj.pointRadius(0.15+Math.abs(Math.sin(t))*0.06);requestAnimationFrame(pulsePoints);})();
+//Point pulsing 
+(function pulsePoints(){const t=Date.now()*0.002;GlobeObj.pointRadius(0.15+Math.abs(Math.sin(t))*0.06);requestAnimationFrame(pulsePoints);})(); //Used chat-gpt to create pulsing animation
 </script>
 </body>
 </html>
