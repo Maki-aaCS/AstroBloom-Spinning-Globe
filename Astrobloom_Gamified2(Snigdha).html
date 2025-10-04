@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Bloom Globe — All Video Embed</title>
+  <title>Bloom Globe — Gamified + Videos</title>
   <style>
     body { margin: 0; overflow: hidden; background: black; color: white; font-family: "Syne", sans-serif; }
     #globeViz { width: 100vw; height: 100vh; }
@@ -15,6 +15,16 @@
     }
     input[type="range"] { width: 60%; }
     #playBtn { margin-top: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: none; }
+    #scoreboard {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(255,255,255,0.9);
+      color: black;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
 
     /* Video modal */
     .video-modal {
@@ -49,6 +59,7 @@
 </head>
 <body>
   <div id="globeViz"></div>
+  <div id="scoreboard">Score: <span id="score">0</span></div>
 
   <div id="sliderContainer">
     <span id="monthLabel">January</span><br>
@@ -75,50 +86,50 @@
       Fiji:       ["#ebe41f","#efa3ee","#e28ee8","#ef6cae","#ea9cd4","#da48c2","#ffffff","#ff4500","#ea8ecb","#edaa92","#eea58b","#e69a87"]
     };
 
-    // --- Locations with video URLs ---
+    // Locations with videos
     const locations = {
       Japan: [
-        { lat: 35.6895, lng: 139.6917, label: "Tokyo", videoUrl:"https://youtu.be/ZrcbDVhqvZg" },
-        { lat: 34.6937, lng: 135.5023, label: "Osaka", videoUrl:"https://share.google/7t4DK6Uh9pWWY25NG" },
-        { lat: 35.0116, lng: 135.7681, label: "Kyoto", videoUrl:"https://share.google/uRtB6ue1iSblk35Cl" },
-        { lat: 43.06417, lng: 141.34694, label: "Sapporo", videoUrl:"https://share.google/hVnwdnn6rpYgNIY1m" },
-        { lat: 33.5902, lng: 130.4017, label: "Fukuoka", videoUrl:"https://share.google/urc3d5XBGHYNDdqsm" }
+        { lat: 35.6895, lng: 139.6917, label: "Tokyo", videoUrl:"https://youtu.be/ZrcbDVhqvZg" },  //Tokyo: Yt vid owner blocked from website
+        { lat: 34.6937, lng: 135.5023, label: "Osaka", videoUrl:"https://youtu.be/axitaaKf_BE" }, //Osaka: Showing Auckland
+        { lat: 35.0116, lng: 135.7681, label: "Kyoto", videoUrl:"https://www.youtube.com/watch?v=rCuCTFjRIJM" },  
+        { lat: 43.06417, lng: 141.34694, label: "Sapporo", videoUrl:"https://www.youtube.com/watch?v=rbxiTQ0izTg" },
+        { lat: 33.5902, lng: 130.4017, label: "Fukuoka", videoUrl:"https://www.youtube.com/watch?v=5JtLTHaPFDM" }
       ],
       Alaska: [
         { lat: 61.2181, lng: -149.9003, label: "Anchorage", videoUrl:"https://youtube.com/shorts/Hrrr12QfUt8" },
         { lat: 64.8378, lng: -147.7164, label: "Fairbanks", videoUrl:"https://youtube.com/shorts/LtT454zVegE" },
-        { lat: 58.3019, lng: -134.4197, label: "Juneau", videoUrl:"https://share.google/FqKsPxgXLuhh3DI77" },
-        { lat: 64.5011, lng: -165.4064, label: "Nome", videoUrl:"https://share.google/bySMAQT8iL3BXnd3Q" },
-        { lat: 60.1042, lng: -149.4422, label: "Seward", videoUrl:"https://share.google/QXkXPJZIcZfh0pTyW" }
+        { lat: 58.3019, lng: -134.4197, label: "Juneau", videoUrl:"https://www.youtube.com/watch?app=desktop&v=dpnGtvuNyrA" },  //Juneau: Error
+        { lat: 64.5011, lng: -165.4064, label: "Nome", videoUrl:"https://www.youtube.com/watch?v=SUcOTyYW5gE" },
+        { lat: 60.1042, lng: -149.4422, label: "Seward", videoUrl:"https://www.youtube.com/watch?v=1gl8yMo5M5Q" }
       ],
       Madagascar: [
-        { lat: -18.8792, lng: 47.5079, label: "Antananarivo", videoUrl:"https://www.instagram.com/reel/DBboGIUMrM7" },
-        { lat: -18.1494, lng: 49.4021, label: "Toamasina", videoUrl:"https://share.google/vfQQ3vXgFbS0CLmvA" },
-        { lat: -15.7167, lng: 46.3167, label: "Mahajanga", videoUrl:"https://share.google/FelErEpOoCiE8ktYi" },
-        { lat: -23.3510, lng: 43.6667, label: "Toliara", videoUrl:"https://share.google/OA2g8G1Ee0XRltYPz" },
-        { lat: -12.2760, lng: 49.3110, label: "Antsiranana", videoUrl:"https://pin.it/2rdnJrcWI" }
+        { lat: -18.8792, lng: 47.5079, label: "Antananarivo", videoUrl:"https://www.instagram.com/reel/DBboGIUMrM7" },  //Antananarivo: instagram video
+        { lat: -18.1494, lng: 49.4021, label: "Toamasina", videoUrl:"https://www.youtube.com/watch?v=soLTJjM0K6E" },
+        { lat: -15.7167, lng: 46.3167, label: "Mahajanga", videoUrl:"https://share.google/FelErEpOoCiE8ktYi" }, //Mahajanga: TikTok image
+        { lat: -23.3510, lng: 43.6667, label: "Toliara", videoUrl:"https://www.shutterstock.com/video/clip-3464804853-white-madagascar-periwinkle-flower-garden" },   //Tolaira: shutterstock video
+        { lat: -12.2760, lng: 49.3110, label: "Antsiranana", videoUrl:"https://pin.it/2rdnJrcWI" }  //Antsiranana: Pinterest video
       ],
       NewZealand: [
         { lat: -36.8485, lng: 174.7633, label: "Auckland", videoUrl:"https://youtu.be/axitaaKf_BE" },
-        { lat: -41.2865, lng: 174.7762, label: "Wellington", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" },
+        { lat: -41.2865, lng: 174.7762, label: "Wellington", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" }, //Wellington: Same as Dunedin
         { lat: -43.5321, lng: 172.6362, label: "Christchurch", videoUrl:"https://youtu.be/lSEU1DI7VYE" },
-        { lat: -45.8788, lng: 170.5028, label: "Dunedin", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" },
-        { lat: -37.7832, lng: 175.2793, label: "Hamilton", videoUrl:"https://share.google/X0hc3CFpe5v5sU2Zx" }
+        { lat: -45.8788, lng: 170.5028, label: "Dunedin", videoUrl:"https://youtube.com/shorts/4SEsyY_kM2o" },  //Dunedin: Same as Wellington
+        { lat: -37.7832, lng: 175.2793, label: "Hamilton", videoUrl:"https://www.youtube.com/watch?v=0hx7FNVRVjg" }
       ],
       Fiji: [
-        { lat: -18.1248, lng: 178.4501, label: "Suva", videoUrl:"https://share.google/mH2OMFtfCefwpoKJw" },
-        { lat: -17.7768, lng: 177.4358, label: "Nadi", videoUrl:"https://youtu.be/si5tPjg92v4" },
-        { lat: -17.6160, lng: 177.4445, label: "Lautoka", videoUrl:"https://share.google/LFarCgDZJqoe6RWe7" },
-        { lat: -18.8139, lng: 178.8458, label: "Levuka", videoUrl:"https://share.google/pddfALrcGszGtG6dC" },
-        { lat: -16.4167, lng: 179.3833, label: "Labasa", videoUrl:"https://share.google/bxHZYPzr6eLtX6Vp9" }
+        { lat: -18.1248, lng: 178.4501, label: "Suva", videoUrl:"https://youtu.be/si5tPjg92v4" }, //Suva: Same as Nadi
+        { lat: -17.7768, lng: 177.4358, label: "Nadi", videoUrl:"https://youtu.be/si5tPjg92v4" }, //Nadi: Same as Suva
+        { lat: -17.6160, lng: 177.4445, label: "Lautoka", videoUrl:"https://share.google/LFarCgDZJqoe6RWe7" }, //Lautoka: Video is from facebook
+        { lat: -18.8139, lng: 178.8458, label: "Levuka", videoUrl:"https://www.youtube.com/watch?v=TvWC6wY468c" },
+        { lat: -16.4167, lng: 179.3833, label: "Labasa", videoUrl:"https://share.google/bxHZYPzr6eLtX6Vp9" } //Labasa: Video is showing Bangladesh
       ]
     };
 
     const numRipples = 12;
     const basePeriod = 12000;
+
     function hexToRgb(hex) {
       const bigint = parseInt(hex.slice(1), 16);
-//Showing error so next line is the modified version      return [ (bigint >> 16) & 255, (bigint >> 😎 & 255, bigint & 255 ];
       return [ (bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255 ];
     }
 
@@ -128,7 +139,7 @@
       .pointAltitude(0)
       .pointLabel(d => d.label)
       .pointColor(d => d.color)
-      .pointRadius(0.25)
+      .pointRadius(0.18)
       .ringsData([])
       .ringMaxRadius(d => d.maxR)
       .ringPropagationSpeed(d => d.speed)
@@ -141,35 +152,19 @@
 
     function updateForMonth(monthIndex) {
       document.getElementById('monthLabel').textContent = monthNames[monthIndex];
-      const rings = [];
-      const points = [];
+      const rings = [], points = [];
 
       for (const country of Object.keys(locations)) {
         const colorHex = bloomColors[country] ? bloomColors[country][monthIndex] : "#ffffff";
         const colorRGB = hexToRgb(colorHex);
 
         for (const loc of locations[country]) {
-          points.push({
-            lat: loc.lat,
-            lng: loc.lng,
-            label: `${country} — ${loc.label}`,
-            color: colorHex,
-            videoUrl: loc.videoUrl
-          });
-
+          points.push({ lat: loc.lat, lng: loc.lng, label: `${country} — ${loc.label}`, color: colorHex, videoUrl: loc.videoUrl });
           for (let i = 0; i < numRipples; i++) {
-            rings.push({
-              lat: loc.lat,
-              lng: loc.lng,
-              maxR: 3.5,
-              speed: 2,
-              period: basePeriod / (i + 1),
-              colorRGB: colorRGB
-            });
+            rings.push({ lat: loc.lat, lng: loc.lng, maxR: 3.5, speed: 2, period: basePeriod / (i + 1), colorRGB: colorRGB });
           }
         }
       }
-
       GlobeObj.pointsData(points);
       GlobeObj.ringsData(rings);
     }
@@ -179,47 +174,64 @@
     const slider = document.getElementById('monthSlider');
     slider.addEventListener('input', e => updateForMonth(parseInt(e.target.value, 10)));
 
-    const playBtn = document.getElementById('playBtn');
-    let isPlaying = false, playInterval = null;
-    playBtn.addEventListener('click', () => {
-      if (!isPlaying) {
-        isPlaying = true;
-        playBtn.textContent = '⏸ Pause';
-        playInterval = setInterval(() => {
-          let next = (parseInt(slider.value) + 1) % 12;
-          slider.value = next;
-          updateForMonth(next);
-        }, 1000);
-      } else {
-        isPlaying = false;
-        playBtn.textContent = '▶ Play';
-        clearInterval(playInterval);
+    // Play / Pause
+const playBtn = document.getElementById('playBtn');
+let isPlaying = false, playInterval = null;
+
+playBtn.addEventListener('click', () => {
+  if (!isPlaying) {
+    isPlaying = true;
+    playBtn.textContent = '⏸ Pause';
+
+    // Start month animation
+    playInterval = setInterval(() => {
+      let next = (parseInt(slider.value) + 1) % 12;
+      slider.value = next;
+      updateForMonth(next);
+    }, 1000);
+
+    // Resume spinning
+    GlobeObj.controls().autoRotate = true;
+
+  } else {
+    isPlaying = false;
+    playBtn.textContent = '▶ Play';
+
+    // Stop month animation
+    clearInterval(playInterval);
+
+    // Pause spinning
+    GlobeObj.controls().autoRotate = false;
+  }
+});
+
+
+    // SCORE SYSTEM (no timer)
+    let score = 0;
+    const scoreDisplay = document.getElementById("score");
+    const clickedLocations = new Set();
+
+    GlobeObj.onPointClick(point => {
+      if (point.videoUrl) {
+        // Show video modal
+        ytFrame.src = point.videoUrl.includes("youtu") ? toEmbedUrl(point.videoUrl) + "?autoplay=1&rel=0" : point.videoUrl;
+        modal.classList.add('active');
+      }
+      if (!clickedLocations.has(point.label)) {
+        clickedLocations.add(point.label);
+        score += 100;
+        scoreDisplay.textContent = score;
       }
     });
 
-    (function pulsePoints() {
-      const t = Date.now() * 0.002;
-      GlobeObj.pointRadius(0.15 + Math.abs(Math.sin(t)) * 0.08);
-      requestAnimationFrame(pulsePoints);
-    })();
-
-    // --- Video Modal Handling (all URLs iframe) ---
+    // Modal handlers
     const modal = document.getElementById('videoModal');
     const ytFrame = document.getElementById('ytFrame');
     const closeBtn = document.getElementById('closeBtn');
     closeBtn.addEventListener('click', () => { modal.classList.remove('active'); ytFrame.src=""; });
     modal.addEventListener('click', e => { if (e.target===modal) { modal.classList.remove('active'); ytFrame.src=""; } });
 
-    GlobeObj.onPointClick(point => {
-      if (point.videoUrl) {
-        ytFrame.src = point.videoUrl.includes("youtu") 
-          ? toEmbedUrl(point.videoUrl) + "?autoplay=1&rel=0" 
-          : point.videoUrl;
-        modal.classList.add('active');
-      }
-    });
-function toEmbedUrl(url) {
-      // YouTube / YouTube Shorts → embed format
+    function toEmbedUrl(url) {
       if(url.includes("youtu")) {
         let videoId = "";
         if(url.includes("shorts/")) {
@@ -231,9 +243,15 @@ function toEmbedUrl(url) {
         }
         return "https://www.youtube.com/embed/" + videoId;
       }
-      // অন্যান্য URLs 그대로 রাখবে (Instagram, Google Drive, Pinterest)
       return url;
     }
+
+    // Pulse animation for points
+    (function pulsePoints() {
+      const t = Date.now() * 0.002;
+      GlobeObj.pointRadius(0.15 + Math.abs(Math.sin(t)) * 0.06);
+      requestAnimationFrame(pulsePoints);
+    })();
   </script>
 </body>
 </html>
