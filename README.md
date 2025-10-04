@@ -17,4 +17,4 @@ What does each file do?
 
 MAIN FILES TO FOCUS ON:
 - AstroBloom_Pulse_Final
-- AstroBloom_Gamified1
+- AstroBloom_Gamified2
