@@ -8,7 +8,8 @@ How do I access this on my web browser if it doesn't open when I click it throug
   cd desktop/AstroBloom
 - On the next line type: python -m local.server 8000 (This helps you access local servers since your laptop restricts some sites)
 - Next, go to your web-broswer and type http://localhost:8000/YourFileNameHere.html
-- Now you should see your Globe :)
+- Now you should see your Globe (like the one below) :)
+<img width="2879" height="1428" alt="image" src="https://github.com/user-attachments/assets/3f0740d5-d830-441c-b6c5-c7e0bc9e66c4" />
 
 What does each file do?
 
@@ -16,7 +17,14 @@ What does each file do?
 - AstroBloom_Gamified_Raw in 'Raw' branch: A first trial sample as to how the gamified version of the spinning globe will look.
 - AstroBloom_Gamified1: Working functions including timer, points system and popups.
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
+- AstroBloom_Agri&Bloom: 'Gamified' spinning globe, but with Agriculture added!
 
-MAIN FILES TO FOCUS ON:
-- AstroBloom_Pulse_Final
-- AstroBloom_Gamified2
+How to use the final file?
+Astrobloom_Agri&Bloom:
+- Hover around (or on) pulsating circles to see location.
+- Click on location to see a video of blooming flowers in that location. Once the location is clicked, you will obtain 100 points (can be seen top-left corner of the screen for score). Once you have viewed all areas, a tick mark will appear beside you final total score.
+- To switch between blooming and agriculture, there is a drop down menu on the top-right corner of the page.
+
+  
+
+
