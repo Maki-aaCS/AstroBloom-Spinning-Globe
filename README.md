@@ -17,11 +17,11 @@ What does each file do?
 - AstroBloom_Gamified_Raw in 'Raw' branch: A first trial sample as to how the gamified version of the spinning globe will look.
 - AstroBloom_Gamified1: Working functions including timer, points system and popups.
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
-- AstroBloom_Agri&Bloom: 'Gamified' spinning globe, but with Agriculture added!
+- AstroBloom_Agri&Bloom_Gamified: 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
 
 
 How to use the final file?
-Astrobloom_Agri&Bloom:
+Astrobloom_Agri&Bloom_Gamified:
 
 - Hover around (or on) pulsating circles to see location.
 
