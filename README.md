@@ -17,7 +17,7 @@ This is my *(Makimaa Omkararuban)* workflow for the AstroBloom Nasa Space Apps C
 - AstroBloom_Gamified_Raw in 'Raw' branch: A first trial sample as to how the gamified version of the spinning globe will look.
 - AstroBloom_Gamified1: Working functions including timer, points system and popups.
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
-- **AstroBloom_Agri&Bloom_Gamified:** 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
+- **AstroBloom_Agri&Bloom_Gamified** no called **index.html**: 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
   
 - **NDVIPredictions: This file doesn't have any direct link to the spinning globe, but is part of my workflow.** Gives NDVI predictions for the five countries used for sampling (Japan, Alaska, Madagascar, New Zealand and Fiji). Used NDVI data from 2018-2023 to predict 2023-2024 NDVI patterns. (Note: Use of generative AI mentioned in code comments.
 
@@ -32,7 +32,7 @@ For the **NDVIPredictions** python file (opened in code editor and press run to 
 
 
 
-For the **Astrobloom_Agri&Bloom_Gamified** html file (opened in webrowser mostly):
+For the **Astrobloom_Agri&Bloom_Gamified** html file which is now called **index.html** (opened in webrowser mostly):
 
 - Hover around (or on) pulsating circles to see location.
 
