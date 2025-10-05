@@ -2,7 +2,7 @@
 
 This is my (Makimaa Omkararuban) workflow for the AstroBloom Nasa Space Apps Competition.
 
-How do I access this on my web browser if it doesn't open when I click it through my File Explorer (for Windows)?
+How do I access this on my web browser if  doesn't open when I click it through my File Explorer (for Windows)?
 - Go to your command prompt (cmd)
 - Insert your file path (example: if your file is in you desktop in a folder name called 'AstroBloom', type
   cd desktop/AstroBloom
@@ -18,9 +18,20 @@ What does each file do?
 - AstroBloom_Gamified1: Working functions including timer, points system and popups.
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
 - AstroBloom_Agri&Bloom_Gamified: 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
+  
+- NDVIPredictions: This file doesn't have any direct link to the spinning globe, but is part of my workflow. Gives NDVI predictions for the five countries used for sampling (Japan, Alaska, Madagascar, New Zealand and Fiji). Used NDVI data from 2018-2023 to predict 2023-2024 NDVI patterns. 
 
 
 How to use the final file?
+
+NDVIPredictions:
+- You will first be able to see the NDVI pattern for 2018-2023 either using the hdf you attach, or if nothing is attached, it will use sample data (part of the code). The examples attached here are for Japan.
+<img width="1763" height="871" alt="image" src="https://github.com/user-attachments/assets/e374e25a-2557-4d95-ab4f-33ed3043e979" />
+- This will then be followed by the NDVI Prediction for 2023-2024.
+<img width="1760" height="860" alt="image" src="https://github.com/user-attachments/assets/a5fbddcc-21eb-4c41-8a7e-3b720621a6e2" />
+
+
+
 Astrobloom_Agri&Bloom_Gamified:
 
 - Hover around (or on) pulsating circles to see location.
