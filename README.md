@@ -3,6 +3,10 @@
 This is my *(Makimaa Omkararuban)* workflow for the AstroBloom Nasa Space Apps Competition.
 
 **How do I access this on my web browser if it doesn't open when I click it through my File Explorer (for Windows)?**
+Either:
+- Open this link (can be opened through deployment - is part of this github repository): http://earthinnovation.design/
+
+Or
 - Go to your command prompt (cmd)
 - Insert your file path (example: if your file is in you desktop in a folder name called 'AstroBloom', type
   cd desktop/AstroBloom
