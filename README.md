@@ -1,8 +1,8 @@
 # AstroBloom-Spinning-Globe
 
-This is my (Makimaa Omkararuban) workflow for the AstroBloom Nasa Space Apps Competition.
+This is my *(Makimaa Omkararuban)* workflow for the AstroBloom Nasa Space Apps Competition.
 
-How do I access this on my web browser if  doesn't open when I click it through my File Explorer (for Windows)?
+**How do I access this on my web browser if it doesn't open when I click it through my File Explorer (for Windows)?**
 - Go to your command prompt (cmd)
 - Insert your file path (example: if your file is in you desktop in a folder name called 'AstroBloom', type
   cd desktop/AstroBloom
@@ -11,20 +11,20 @@ How do I access this on my web browser if  doesn't open when I click it through 
 - Now you should see your Globe (like the one below) :)
 <img width="2879" height="1428" alt="image" src="https://github.com/user-attachments/assets/3f0740d5-d830-441c-b6c5-c7e0bc9e66c4" />
 
-What does each file do?
+**What does each file do?**
 
-- AstroBloom_Pulse: An update to Vika's spinning globe code. Note: AstroBloom_Pulse_Final is the final version with the functioning month slider and pulses showing for several locations in each country.
+- **AstroBloom_Pulse:** An update to Vika's spinning globe code. Note: **AstroBloom_Pulse_Final is the final version** with the functioning month slider and pulses showing for several locations in each country.
 - AstroBloom_Gamified_Raw in 'Raw' branch: A first trial sample as to how the gamified version of the spinning globe will look.
 - AstroBloom_Gamified1: Working functions including timer, points system and popups.
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
-- AstroBloom_Agri&Bloom_Gamified: 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
+- **AstroBloom_Agri&Bloom_Gamified:** 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
   
-- NDVIPredictions: This file doesn't have any direct link to the spinning globe, but is part of my workflow. Gives NDVI predictions for the five countries used for sampling (Japan, Alaska, Madagascar, New Zealand and Fiji). Used NDVI data from 2018-2023 to predict 2023-2024 NDVI patterns. (Note: Use of generative AI mentioned in code comments.
+- **NDVIPredictions: This file doesn't have any direct link to the spinning globe, but is part of my workflow.** Gives NDVI predictions for the five countries used for sampling (Japan, Alaska, Madagascar, New Zealand and Fiji). Used NDVI data from 2018-2023 to predict 2023-2024 NDVI patterns. (Note: Use of generative AI mentioned in code comments.
 
 
-How to use the final file?
+**How to use the final file?**
 
-NDVIPredictions:
+For the **NDVIPredictions** python file (opened in code editor and press run to execute):
 - You will first be able to see the NDVI pattern for 2018-2023 either using the hdf you attach, or if nothing is attached, it will use sample data (part of the code). The examples attached here are for Japan.
 <img width="1763" height="871" alt="image" src="https://github.com/user-attachments/assets/e374e25a-2557-4d95-ab4f-33ed3043e979" />
 - This will then be followed by the NDVI Prediction for 2023-2024.
@@ -32,7 +32,7 @@ NDVIPredictions:
 
 
 
-Astrobloom_Agri&Bloom_Gamified:
+For the **Astrobloom_Agri&Bloom_Gamified** html file (opened in webrowser mostly):
 
 - Hover around (or on) pulsating circles to see location.
 
