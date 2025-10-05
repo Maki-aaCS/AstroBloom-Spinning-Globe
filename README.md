@@ -19,7 +19,7 @@ What does each file do?
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
 - AstroBloom_Agri&Bloom_Gamified: 'Gamified' spinning globe, but with Agriculture added! (Note: the use of generative AI is acknowledged in the comments of this code).
   
-- NDVIPredictions: This file doesn't have any direct link to the spinning globe, but is part of my workflow. Gives NDVI predictions for the five countries used for sampling (Japan, Alaska, Madagascar, New Zealand and Fiji). Used NDVI data from 2018-2023 to predict 2023-2024 NDVI patterns. 
+- NDVIPredictions: This file doesn't have any direct link to the spinning globe, but is part of my workflow. Gives NDVI predictions for the five countries used for sampling (Japan, Alaska, Madagascar, New Zealand and Fiji). Used NDVI data from 2018-2023 to predict 2023-2024 NDVI patterns. (Note: Use of generative AI mentioned in code comments.
 
 
 How to use the final file?
