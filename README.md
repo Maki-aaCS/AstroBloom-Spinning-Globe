@@ -19,11 +19,21 @@ What does each file do?
 - AstroBloom_Gamified2: The final Spinning globe with youtube popups for each location along with score system.
 - AstroBloom_Agri&Bloom: 'Gamified' spinning globe, but with Agriculture added!
 
+
 How to use the final file?
 Astrobloom_Agri&Bloom:
+
 - Hover around (or on) pulsating circles to see location.
-- Click on location to see a video of blooming flowers in that location. Once the location is clicked, you will obtain 100 points (can be seen top-left corner of the screen for score). Once you have viewed all areas, a tick mark will appear beside you final total score.
+
+- Click on location to see a video of blooming flowers in that location.
+- Once the location is clicked, you will obtain 100 points (can be seen top-left corner of the screen for score).
+<img width="2879" height="1453" alt="image" src="https://github.com/user-attachments/assets/f265b25b-7298-4fa5-a34b-f3e1ceff77e7" />
+- Once you have viewed all areas, a tick mark will appear beside you final total score.
+
+  
 - To switch between blooming and agriculture, there is a drop down menu on the top-right corner of the page.
+<img width="2879" height="1439" alt="image" src="https://github.com/user-attachments/assets/6edb912e-5c49-4477-bc3c-8cd46078e229" />
+
 
   
 
